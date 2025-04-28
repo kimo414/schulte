@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>手机舒尔特方格</title>
+    <title>舒尔特方格</title>
     <style>
         body{margin:0;padding:5px;touch-action:manipulation;}
         #grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin:0 auto;width:98vw;}
         .cell{position:relative;width:100%;padding-top:100%;background:#f0f0f0;border-radius:3px;}
         .cell>div{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:6vmin;}
+        .cell.empty{background:#fff;}
         #timer{text-align:center;font-size:5vmin;margin:10px 0;}
     </style>
 </head>
@@ -28,54 +29,51 @@ function init(){
 }
 
 function render(){
-    grid.innerHTML=nums.map(x=>`
-        <div class="cell" data-num="${x}">
-            <div>${x}</div>
-        </div>
-    `).join('');
+    grid.innerHTML=nums.map(x=>x?
+        `<div class="cell" data-num="${x}"><div>${x}</div></div>`:
+        `<div class="cell empty"></div>`
+    ).join('');
 }
 
 function shuffle(a){
-    for(let i=a.length-1;i>0;i--){
-        let j=Math.floor(Math.random()*(i+1));
-        [a[i],a[j]]=[a[j],a[i]];
-    }
+    for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
     return a;
 }
 
 grid.onclick=e=>{
-    let cell=e.target.closest('.cell');
+    let cell=e.target.closest('.cell:not(.empty)');
     if(!cell)return;
     let num=+cell.querySelector('div').textContent;
+    
     if(num!==n)return;
     
-    if(n===1){
-        t=Date.now();
-        requestAnimationFrame(update);
-    }
+    if(n===1){t=Date.now();requestAnimationFrame(update);}
     
     if(n<=25){
-        let idx=nums.indexOf(num);
+        let idx=nums.indexOf(n);
         nums[idx]=pool.pop();
+    }else{
+        let idx=nums.indexOf(n);
+        nums[idx]=null; 
     }
     
     n++;
     
+    if(n>25 && n<=50 && !nums.includes(n)){
+        let emptyIndex=nums.findIndex(v=>v===null);
+        if(emptyIndex>-1)nums[emptyIndex]=n;
+    }
+    
     if(n>50){
         let time=((Date.now()-t)/1000).toFixed(2);
-        alert(`时间：${time}秒`);
+        alert(`完成时间：${time}秒`);
         return;
     }
     
     render();
 };
 
-function update(){
-    if(t){
-        document.getElementById('timer').textContent=((Date.now()-t)/1000).toFixed(2)+'秒';
-        requestAnimationFrame(update);
-    }
-}
+function update(){if(t){document.getElementById('timer').textContent=((Date.now()-t)/1000).toFixed(2)+'秒';requestAnimationFrame(update);}}
 
 init();
 </script>
